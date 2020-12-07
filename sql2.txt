@@ -1,0 +1,49 @@
+CREATE BASE SQL2;
+CREATE EXTENSION postgis;
+
+CREATE TABLE budynki(id_budynku INT,nazwa_budynku VARCHAR(50),geom geometry);
+CREATE TABLE drogi(id_drogi INT,nazwa_drogi VARCHAR(50),geom geometry);
+CREATE TABLE punkty_informacyjne(id_punktu_info INT,nazwa_punktu_info VARCHAR(50),geom geometry);
+
+INSERT INTO budynki VALUES
+  (1,'BudynekA', 'POLYGON((8 4,10.5 4,8 1.5,10.5 1.5,8 4))'),
+  (2,'BudynekB', 'POLYGON((4 7, 6 7,4 5,6 5,4 7))'),
+  (3,'BudynekC', 'POLYGON((3 8, 5 8,3 6,5 6,3 8))'),
+  (4,'BudynekD', 'POLYGON((9 9,10 9,9 8, 10 8,9 9))'),
+  (5,'BudynekF', 'POLYGON((1 2,2 2 , 1 1, 2 1, 1 2))');
+  
+SELECT id_budynku , nazwa_budynku ,ST_AsText(geom) FROM budynki;
+
+INSERT INTO punkty_informacyjne VALUES
+  (1,'PunktI', 'POINT(9 5.6)'),
+  (2,'PunktJ', 'POINT(6 5.6)'),
+  (3,'PunktK', 'POINT(6,9.5 0)'),
+  (4,'PunktH', 'POINT(5.5 1.5)'),
+  (5,'PunktG', 'POINT(1,3.5)');
+
+  
+SELECT id_punktu, nazwa_punktu_info ,ST_AsText(geom) FROM punkty_informacyjne;
+
+
+INSERT INTO drogi VALUES
+  (1,'DrogaY', 'LINESTRING(0 7.5,  0 10.5)'),
+  (2,'DrogaX', ''LINESTRING(4.5 0,12 0)');
+  
+SELECT id_drogi, nazwa_drogi ,ST_AsText(geom) FROM drogi;
+
+
+SELECT ST_AREA(geom) AS pole_powierzchni, ST_PERIMETER(geom) AS obwód, ST_AsText(geom) AS WKT FROM budynki 
+
+SELECT ST_AREA(geom) AS pole_powierzchni, ST_PERIMETER(geom) AS obwód, ST_AsText(geom) AS WKT FROM budynki WHERE nazwa_budynku LIKE'BudynekA';
+
+SELECT ST_AREA(geom) AS pole_powierzchni, nazwa_budynku FROM budynki ORDER BY(nazwa_budynku) ASC
+
+SELECT ST_DISTANCE(budynki.geom,punkty_informacyjne.geom)
+FROM budynki, punkty_informacyjne
+WHERE budynki.nazwa_budynku LIKE 'BudynekB' AND punkty_informacyjne.nazwa_punktu_info LIKE 'G';
+
+SELECT ST_AREA(ST_DIFFERENCE(SELECT geom FROM budynki WHERE nazwa_budynku LIKE 'BudynekC'),ST_ST_BUFFER(SELECT geom FROM budynki WHERE nazwa_budynku LIKE 'BudynekB'),0.5);
+
+SELECT ST_CENTROID(budynki.geom) AS centroid FROM budynki, drogi WHERE ST_Y(centroid)>4.5;
+
+SELECT ST_AREA(ST_DYMDIFFERENCE(budynki.geom, ST_GEOMPROMTEXT(((4 7, 6 7, 6 8 , 4 8, 47))),0)
